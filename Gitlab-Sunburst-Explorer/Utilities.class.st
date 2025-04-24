@@ -7,7 +7,8 @@ Class {
 		'glhImporter',
 		'project',
 		'branch',
-		'glApi'
+		'glApi',
+		'dateBlame'
 	],
 	#classInstVars : [
 		'root'
@@ -26,7 +27,7 @@ Utilities >> branch: anObject [
 	branch := anObject.
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'creation' }
 Utilities >> buildTreeFrom: paths [
 	| root pathSet |
 	root := TreeNode new.
@@ -87,15 +88,15 @@ Utilities >> buildTreeFrom: paths [
 
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'services' }
 Utilities >> checkDate: aString [
-	| dateObject today thirtyDaysAgo |
+	| dateObject today daysAgo |
 	dateObject := aString asDateAndTime.
 
 	today := Date today.
-	thirtyDaysAgo := today addDays: -30.
+	dateBlame ifNotNil: [ daysAgo := today addDays: (dateBlame) ] ifNil: [ daysAgo := today addDays: -30 ].
 
-	^ (dateObject >= thirtyDaysAgo) and: (dateObject <= today)
+	^ (dateObject >= daysAgo) and: (dateObject <= today)
 ]
 
 { #category : 'services' }
@@ -114,7 +115,7 @@ Utilities >> chooseColor: aShape [
 			ifFalse: [ ^ Color r: 0.8 g: 0.85 b: 1.0 ] ]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'services' }
 Utilities >> computeAverageColor: root [
 	| totalRed totalGreen totalBlue count |
 	
@@ -143,11 +144,17 @@ Utilities >> computeAverageColor: root [
 	^ root
 ]
 
-{ #category : 'as yet unclassified' }
-Utilities >> creationNode [
+{ #category : 'accessing' }
+Utilities >> dateBlame [
+	^dateBlame 
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'accessing' }
+Utilities >> dateBlame: anObject [
+	dateBlame := anObject 
+]
+
+{ #category : 'services' }
 Utilities >> getDateLastBlame: aFilePath [
 	| blame |
 	blame := NeoJSONReader fromString: (
@@ -200,7 +207,7 @@ Utilities >> project: anObject [
 	project := anObject
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'services' }
 Utilities >> retrieveFiles [
 	|selectedBranch files|
 	selectedBranch := ( project repository branches detect: [ :b  | b name = branch] ) .
