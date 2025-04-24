@@ -4,6 +4,9 @@
 Metacello new
   githubUser: 'Marpioux' project: 'Gitlab-HeatMap' commitish: 'main' path: 'src';
   baseline: 'GitlabHeatMap';
+  onConflict: [ :ex | ex useIncoming ];
+  onUpgrade: [ :ex | ex useIncoming ];
+  onDowngrade: [ :ex | ex useLoaded ];
   load
 ```
 
