@@ -37,38 +37,12 @@ Design >> SunburstFor: aProject withLeafs: leafsName [
 		when: RSMouseLeave do: [ :evt | label text: '' ] for: self.
 
 	sb shapes do: [ :shape |
-		shape color: (self chooseColor: shape).
+		shape color: shape model color.
 	].
 
 	sb shapes @ interaction.
 	sb canvas add: label.
 
 	^ sb
-
-]
-
-{ #category : 'as yet unclassified' }
-Design >> checkDate: aString [
-| dateObject today thirtyDaysAgo |
-dateObject := aString asDateAndTime.
-
-today := Date today.
-thirtyDaysAgo := today addDays: -30.
-
-^ (dateObject >= thirtyDaysAgo) and: (dateObject <= today)
-
-]
-
-{ #category : 'services' }
-Design >> chooseColor: aShape [
-		| changed |
-		changed := aShape model changed.
-		changed ifNil: [
-			^ (Color r: 0.8 g: 1.0 b: 0.8) 
-		] ifNotNil: [ 
-			(self checkDate: changed)
-				ifTrue: [ ^(Color r: 1.0 g: 0.8 b: 0.8) ]
-				ifFalse: [ ^ (Color r: 0.8 g: 0.85 b: 1.0) ]
-		].
 
 ]
