@@ -32,6 +32,7 @@ modelImporter := GitlabModelImporter new
 nodes := Utilities new
   project: (modelImporter importProject: <project-id>);
   branch: '<branch-name>';
+  dateBlame: -60; "Optional — if not set explicitly, defaults to -30 days"
   glApi: glphApi;
   glhImporter: modelImporter;
   yourself.
