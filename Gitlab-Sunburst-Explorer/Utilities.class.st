@@ -31,7 +31,7 @@ Utilities >> branch: anObject [
 Utilities >> buildTreeFrom: paths [
 	| root pathSet |
 	root := TreeNode new.
-	root name: 'root'; fullPath: '/'; changed: nil; color: nil.
+	root name: 'root'; fullPath: '/'; changed: nil; color: nil; changedBy: nil.
 
 	pathSet := paths asSet.
 
@@ -42,7 +42,7 @@ Utilities >> buildTreeFrom: paths [
 		currentPath := ''.
 
 		1 to: parts size do: [:index |
-			| part next currentIsFile changedValue nodeColor |
+			| part next currentIsFile changedValue nodeColor author |
 			part := parts at: index.
 			currentPath := currentPath isEmpty
 				ifTrue: [part]
@@ -55,8 +55,12 @@ Utilities >> buildTreeFrom: paths [
 			changedValue := currentIsFile
 				ifTrue: [self getDateLastBlame: currentPath]
 				ifFalse: [nil].
+				
+			author := currentIsFile 
+				ifTrue: [self getAuthorLastBlame: currentPath]
+				ifFalse: [nil].
 			
-			changedValue ifNil: [ nodeColor := (Color r: 0.8 g: 1.0 b: 0.8) ] ifNotNil: [  
+			changedValue ifNil: [ nodeColor := (Color r: 0.8 g: 1.0 b: 0.8)] ifNotNil: [  
 			nodeColor := currentIsFile
 				ifTrue: [(self checkDate: changedValue)
 					ifTrue: [Color r: 1.0 g: 0.2 b: 0.2]
@@ -72,6 +76,7 @@ Utilities >> buildTreeFrom: paths [
 							fullPath: currentPath;
 							changed: changedValue;
 							color: nodeColor;
+							changedBy: author;
 							yourself
 							].
 
@@ -152,6 +157,29 @@ Utilities >> dateBlame [
 { #category : 'accessing' }
 Utilities >> dateBlame: anObject [
 	dateBlame := anObject 
+]
+
+{ #category : 'services' }
+Utilities >> getAuthorLastBlame: aFilePath [
+	| blame |
+	blame := NeoJSONReader fromString: (
+		glApi repositories getBlameOf: aFilePath 
+		inRef: branch 
+		ofProject: project id
+	).
+
+	blame isEmpty ifTrue: [ ^ nil ].
+
+	(blame isKindOf: Dictionary) ifTrue: [
+		(blame includesKey: 'message') ifTrue: [ ^ nil ].
+	].
+
+	(blame first isKindOf: Dictionary) ifTrue: [
+		^ ((blame first) at: 'commit') at: 'committer_name'
+	].
+
+	^ nil
+
 ]
 
 { #category : 'services' }

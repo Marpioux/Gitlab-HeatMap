@@ -6,7 +6,8 @@ Class {
 		'subFoldersOrFile',
 		'changed',
 		'fullPath',
-		'color'
+		'color',
+		'changedBy'
 	],
 	#category : 'Gitlab-Sunburst-Explorer',
 	#package : 'Gitlab-Sunburst-Explorer'
@@ -20,6 +21,16 @@ TreeNode >> changed [
 { #category : 'updating' }
 TreeNode >> changed: anObject [
     changed := anObject.
+]
+
+{ #category : 'accessing' }
+TreeNode >> changedBy [
+	^changedBy 
+]
+
+{ #category : 'accessing' }
+TreeNode >> changedBy: aName [
+	changedBy := aName
 ]
 
 { #category : 'accessing' }

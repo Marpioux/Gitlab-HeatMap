@@ -55,7 +55,8 @@ Design >> legend [
 	b := RSLegend new.
 	b
 		text: 'Changed' withBoxColor: (Color r: 1.0 g: 0.2 b: 0.2);
-		text: 'Not Changed' withBoxColor: (Color r: 0.8 g: 0.8 b: 0.8).
+		text: 'Not Changed' withBoxColor: (Color r: 0.8 g: 0.8 b: 0.8);
+		text: 'Unknow' withBoxColor: (Color r: 0.8 g: 1.0 b: 0.8).
 	b legendDo: [ :l |
 		l
 			withBorder;
