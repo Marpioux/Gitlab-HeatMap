@@ -67,3 +67,8 @@ TreeNode >> name: aName [
 TreeNode >> subFoldersOrFile [
     ^ subFoldersOrFile ifNil: [subFoldersOrFile := OrderedCollection new].
 ]
+
+{ #category : 'accessing' }
+TreeNode >> subFoldersOrFile: aCollection [
+	subFoldersOrFile := aCollection
+]

@@ -93,6 +93,74 @@ Utilities >> buildTreeFrom: paths [
 
 ]
 
+{ #category : 'instance creation' }
+Utilities >> buildTreeFrom: paths maxDepth: maxDepth [
+	| root pathSet |
+	root := TreeNode new.
+	root name: 'root'; fullPath: '/'; changed: nil; color: nil; changedBy: nil.
+
+	pathSet := paths asSet.
+
+	paths do: [:path |
+		| parts current currentPath |
+		parts := path substrings: '/'.
+		current := root.
+		currentPath := ''.
+
+		1 to: (parts size min: maxDepth) do: [:index |
+			| part next currentIsFile changedValue nodeColor author |
+			part := parts at: index.
+			currentPath := currentPath isEmpty
+				ifTrue: [part]
+				ifFalse: [currentPath , '/' , part].
+
+			currentIsFile := (pathSet includes: currentPath) and: [
+				(pathSet anySatisfy: [:p | p ~= currentPath and: [p beginsWith: currentPath , '/']]) not
+			].
+
+			changedValue := currentIsFile
+				ifTrue: [self getDateLastBlame: currentPath]
+				ifFalse: [nil].
+
+			author := currentIsFile
+				ifTrue: [self getAuthorLastBlame: currentPath]
+				ifFalse: [nil].
+
+			nodeColor := changedValue
+				ifNil: [Color r: 0.8 g: 1.0 b: 0.8]
+				ifNotNil: [
+					currentIsFile
+						ifTrue: [(self checkDate: changedValue)
+							ifTrue: [Color r: 1.0 g: 0.2 b: 0.2]
+							ifFalse: [Color r: 0.8 g: 0.8 b: 0.8]]
+						ifFalse: [nil]
+				].
+
+			next := current subFoldersOrFile
+				detect: [:child | child name = part]
+				ifNone: [
+					TreeNode new
+						name: part;
+						fullPath: currentPath;
+						changed: changedValue;
+						color: nodeColor;
+						changedBy: author;
+						yourself
+				].
+
+			(current subFoldersOrFile includes: next) ifFalse: [
+				current subFoldersOrFile add: next
+			].
+
+			current := next.
+		].
+	].
+
+	root := self computeAverageColor: root.
+	^ root
+
+]
+
 { #category : 'services' }
 Utilities >> checkDate: aString [
 	| dateObject today daysAgo |
@@ -194,7 +262,7 @@ Utilities >> getDateLastBlame: aFilePath [
 	blame isEmpty ifTrue: [ ^ nil ].
 
 	(blame isKindOf: Dictionary) ifTrue: [
-		(blame includesKey: 'message') ifTrue: [ ^ nil ].
+		^ nil
 	].
 
 	(blame first isKindOf: Dictionary) ifTrue: [
