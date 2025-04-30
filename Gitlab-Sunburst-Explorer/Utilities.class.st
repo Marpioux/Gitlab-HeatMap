@@ -31,7 +31,7 @@ Utilities >> branch: anObject [
 Utilities >> buildTreeFrom: paths [
 	| root pathSet |
 	root := TreeNode new.
-	root name: 'root'; fullPath: '/'; changed: nil; color: nil; changedBy: nil.
+	root name: 'root'; fullPath: '/'; changed: nil; color: nil; changedBy: nil; isLeaf: false.
 
 	pathSet := paths asSet.
 
@@ -77,6 +77,7 @@ Utilities >> buildTreeFrom: paths [
 							changed: changedValue;
 							color: nodeColor;
 							changedBy: author;
+							isLeaf: currentIsFile;
 							yourself
 							].
 
@@ -97,7 +98,7 @@ Utilities >> buildTreeFrom: paths [
 Utilities >> buildTreeFrom: paths maxDepth: maxDepth [
 	| root pathSet |
 	root := TreeNode new.
-	root name: 'root'; fullPath: '/'; changed: nil; color: nil; changedBy: nil.
+	root name: 'root'; fullPath: '/'; changed: nil; color: nil; changedBy: nil; isLeaf: false.
 
 	pathSet := paths asSet.
 
@@ -145,6 +146,7 @@ Utilities >> buildTreeFrom: paths maxDepth: maxDepth [
 						changed: changedValue;
 						color: nodeColor;
 						changedBy: author;
+						isLeaf: currentIsFile;
 						yourself
 				].
 

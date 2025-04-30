@@ -74,10 +74,7 @@ Design >> SunburstFor: aProject withLeafs: leafsName maxDepth: maxDepth [
 		when: RSMouseEnter do: [ :evt |
 			| path |
 			path := (interaction pathFor: evt shape) reverse.
-			path := String streamContents: [ :s |
-					        path
-						        do: [ :node | s << node model name asString ]
-						        separatedBy: [ s << '/' ] ].
+			path :=  path last model fullPath.
 			label
 				text: path;
 				signalUpdate.
@@ -130,17 +127,14 @@ Design >> SunburstFor: aProject withLeafs: leafsName maxDepth: maxDepth withBase
 	interaction := RSSunburstFadeInteraction new builder: sunBuilder.
 
 	label := RSLabel new.
-	label text: ''.
+	label text: 'root'.
 	label isFixed: true.
 
 	sunBuilder shapes
 		when: RSMouseEnter do: [ :evt |
 			| path |
 			path := (interaction pathFor: evt shape) reverse.
-			path := String streamContents: [ :s |
-					        path
-						        do: [ :node | s << node model name asString ]
-						        separatedBy: [ s << '/' ] ].
+			path :=  path last model fullPath.
 			label
 				text: path;
 				signalUpdate.
@@ -158,14 +152,14 @@ Design >> SunburstFor: aProject withLeafs: leafsName maxDepth: maxDepth withBase
 		clickedNode := evt shape model.
 		retrieveNode := self retrieveNode: clickedNode name fromTree: baseProject.
 		newTree := self limitedDepthCopy: retrieveNode maxDepth: maxDepth.
-		newSB := self SunburstFor: newTree withLeafs: #subFoldersOrFile maxDepth: maxDepth withBase: aProject.
+		newSB := self SunburstFor: newTree withLeafs: #subFoldersOrFile maxDepth: maxDepth withBase: baseProject.
 		self updateCanvasWith: newSB. 
 		] for: self.
 
 	legend := (self legend ) asShape.
-    sunBuilder canvas add: legend.
+	sunBuilder canvas add: legend.
 	sunBuilder canvas add: label.
-    legend translateTo: sunBuilder canvas extent x + legend extent x @ (0 - sunBuilder canvas extent y).
+	legend translateTo: sunBuilder canvas extent x + legend extent x @ (0 - sunBuilder canvas extent y).
 
     ^ sunBuilder 
 
@@ -180,6 +174,7 @@ Design >> copyNode: node depth: depth maxDepth: maxDepth [
 		changed: node changed;
 		color: node color;
 		changedBy: node changedBy;
+		isLeaf: node isLeaf;
 		yourself.
 
 	(depth < maxDepth and: [node subFoldersOrFile notEmpty]) ifTrue: [
