@@ -1,6 +1,9 @@
 Class {
 	#name : 'Design',
 	#superclass : 'Object',
+	#instVars : [
+		'sunBuilder'
+	],
 	#category : 'Gitlab-Sunburst-Explorer',
 	#package : 'Gitlab-Sunburst-Explorer'
 }
@@ -51,58 +54,57 @@ Design >> SunburstFor: aProject withLeafs: leafsName [
 
 { #category : 'max depth control' }
 Design >> SunburstFor: aProject withLeafs: leafsName maxDepth: maxDepth [
-	| sb interaction firstTree label legend |
+	| "sb" interaction firstTree label legend |
 	
 	firstTree := self limitedDepthCopy: aProject maxDepth: maxDepth. 
 	
-	sb := RSSunburstBuilder new.
-	sb sliceShape withBorder.
-	sb explore: firstTree using: leafsName.
-	sb build.
-	sb canvas @ RSCanvasController.
+	sunBuilder := RSSunburstBuilder new.
+	sunBuilder sliceShape withBorder.
+	sunBuilder explore: firstTree using: leafsName.
+	sunBuilder build.
+	sunBuilder canvas @ RSCanvasController.
 
-	interaction := RSSunburstFadeInteraction new builder: sb.
+	interaction := RSSunburstFadeInteraction new builder: sunBuilder.
 
 	label := RSLabel new.
 	label text: ''.
 	label isFixed: true.
-
-	sb shapes
-		when: RSMouseEnter do: [ :evt | 
+	
+		sunBuilder shapes
+		when: RSMouseEnter do: [ :evt |
 			| path |
 			path := (interaction pathFor: evt shape) reverse.
 			path := String streamContents: [ :s |
-				path do: [ :node | s << node model name asString ]
-				     separatedBy: [ s << '/' ] ].
+					        path
+						        do: [ :node | s << node model name asString ]
+						        separatedBy: [ s << '/' ] ].
 			label
 				text: path;
 				signalUpdate.
-			label position: label extent / 2
-		]
+			label position: label extent / 2 ]
 		for: self;
 		when: RSMouseLeave do: [ :evt | label text: '' ] for: self.
+		sunBuilder shapes @ interaction.
 
-	sb shapes do: [ :shape |
+	sunBuilder shapes do: [ :shape |
 		shape color: shape model color.
 	].
 
-    sb shapes 
-        when: RSMouseClick do: [:evt | 
-            | clickedNode newTree newSB retrieveNode|
-            clickedNode := evt shape model.
+	sunBuilder shapes 
+		when: RSMouseClick do: [:evt | 
+				| clickedNode newTree newSB retrieveNode|
+				clickedNode := evt shape model.
 
 				retrieveNode := self retrieveNode: clickedNode name fromTree: aProject . 
-            newTree := self limitedDepthCopy: retrieveNode maxDepth: maxDepth.
-
-            newSB := Design new SunburstFor: newTree withLeafs: #subFoldersOrFile maxDepth: maxDepth withBase: aProject.
-            sb canvas clear.
-            sb canvas add: newSB asShape.
-            sb canvas.
+				newTree := self limitedDepthCopy: retrieveNode maxDepth: maxDepth.
+				newSB := self SunburstFor: newTree withLeafs: #subFoldersOrFile maxDepth: maxDepth withBase: aProject.
+				self updateCanvasWith: newSB. 
         ] for: self.
 
 	legend := (self legend ) asShape.
-    sb canvas add: legend.
-    legend translateTo: sb canvas extent x + legend extent x @ (0 - sb canvas extent y).
+	sunBuilder canvas add: legend.
+	sunBuilder canvas add: label.
+	legend translateTo: sunBuilder canvas extent x + legend extent x @ (0 - sunBuilder canvas extent y).
 
     "Optionnel : Ajouter un bouton retour si nécessaire"
     "backButton := RSBox new.
@@ -112,76 +114,60 @@ Design >> SunburstFor: aProject withLeafs: leafsName maxDepth: maxDepth [
         Design new SunburstFor: originalRoot withLeafs: leafsName maxDepth: maxDepth
     ].
     sb canvas add: backButton."
-
-    ^ sb
+	^ sunBuilder 
 
 ]
 
 { #category : 'max depth control' }
 Design >> SunburstFor: aProject withLeafs: leafsName maxDepth: maxDepth withBase: baseProject [
-	| sb interaction label legend |
+	| "sb" interaction label legend |
 	
-	sb := RSSunburstBuilder new.
-	sb sliceShape withBorder.
-	sb explore: aProject using: leafsName.
-	sb build.
-	sb canvas @ RSCanvasController.
+	sunBuilder sliceShape withBorder.
+	sunBuilder explore: aProject using: leafsName.
+	sunBuilder build.
+	sunBuilder canvas @ RSCanvasController.
 
-	interaction := RSSunburstFadeInteraction new builder: sb.
+	interaction := RSSunburstFadeInteraction new builder: sunBuilder.
 
 	label := RSLabel new.
 	label text: ''.
 	label isFixed: true.
 
-	sb shapes
-		when: RSMouseEnter do: [ :evt | 
+	sunBuilder shapes
+		when: RSMouseEnter do: [ :evt |
 			| path |
 			path := (interaction pathFor: evt shape) reverse.
 			path := String streamContents: [ :s |
-				path do: [ :node | s << node model name asString ]
-				     separatedBy: [ s << '/' ] ].
+					        path
+						        do: [ :node | s << node model name asString ]
+						        separatedBy: [ s << '/' ] ].
 			label
 				text: path;
 				signalUpdate.
-			label position: label extent / 2
-		]
+			label position: label extent / 2 ]
 		for: self;
 		when: RSMouseLeave do: [ :evt | label text: '' ] for: self.
+	sunBuilder shapes @ interaction.
 
-	sb shapes do: [ :shape |
+	sunBuilder shapes do: [ :shape |
 		shape color: shape model color.
 	].
 
-    sb shapes 
-        when: RSMouseClick do: [:evt | 
-            | clickedNode newTree newSB retrieveNode|
-            clickedNode := evt shape model.
-
-				retrieveNode := self retrieveNode: clickedNode name fromTree: baseProject. 
-            newTree := self limitedDepthCopy: retrieveNode maxDepth: maxDepth.
-
-            newSB := Design new SunburstFor: newTree withLeafs: leafsName maxDepth: maxDepth withBase: baseProject.
-				sb canvas clear.
-				sb canvas add: newSB asShape.
-				sb canvas signalUpdate.
-				sb canvas changed. 
-				sb canvas
-        ] for: self.
+	sunBuilder shapes when: RSMouseClick do: [:evt |
+		| clickedNode  retrieveNode newTree "window" newSB |
+		clickedNode := evt shape model.
+		retrieveNode := self retrieveNode: clickedNode name fromTree: baseProject.
+		newTree := self limitedDepthCopy: retrieveNode maxDepth: maxDepth.
+		newSB := self SunburstFor: newTree withLeafs: #subFoldersOrFile maxDepth: maxDepth withBase: aProject.
+		self updateCanvasWith: newSB. 
+		] for: self.
 
 	legend := (self legend ) asShape.
-    sb canvas add: legend.
-    legend translateTo: sb canvas extent x + legend extent x @ (0 - sb canvas extent y).
+    sunBuilder canvas add: legend.
+	sunBuilder canvas add: label.
+    legend translateTo: sunBuilder canvas extent x + legend extent x @ (0 - sunBuilder canvas extent y).
 
-    "Optionnel : Ajouter un bouton retour si nécessaire"
-    "backButton := RSBox new.
-    backButton label: '← Root'; 
-    position: (10 @ 10); 
-    action: [
-        Design new SunburstFor: originalRoot withLeafs: leafsName maxDepth: maxDepth
-    ].
-    sb canvas add: backButton."
-
-    ^ sb
+    ^ sunBuilder 
 
 ]
 
@@ -239,4 +225,34 @@ Design >> retrieveNode: aName fromTree: aTree [
 		result := self retrieveNode: aName fromTree: aNode.
 		result ifNotNil: [ ^ result ] ].
 	^nil
+]
+
+{ #category : 'accessing' }
+Design >> sunBuilder [
+	^sunBuilder
+]
+
+{ #category : 'as yet unclassified' }
+Design >> sunBuilder: aBuilder [
+	sunBuilder := aBuilder
+]
+
+{ #category : 'max depth control' }
+Design >> updateCanvas: sb With: aSunburstBuilder [
+	sb canvas clear.
+	sb canvas add: aSunburstBuilder asShape.
+	sb canvas signalUpdate.
+	sb canvas changed.
+
+
+]
+
+{ #category : 'max depth control' }
+Design >> updateCanvasWith: aSunburstBuilder [
+	sunBuilder canvas clear.
+	sunBuilder canvas add: aSunburstBuilder asShape.
+	sunBuilder canvas signalUpdate.
+	sunBuilder canvas changed.
+
+
 ]
