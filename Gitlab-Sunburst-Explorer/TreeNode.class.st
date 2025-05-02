@@ -7,7 +7,9 @@ Class {
 		'changed',
 		'fullPath',
 		'color',
-		'changedBy'
+		'changedBy',
+		'isLeaf',
+		'srcNode'
 	],
 	#category : 'Gitlab-Sunburst-Explorer',
 	#package : 'Gitlab-Sunburst-Explorer'
@@ -54,6 +56,16 @@ TreeNode >> fullPath: aFilePath [
 ]
 
 { #category : 'accessing' }
+TreeNode >> isLeaf [ 
+	^ isLeaf
+]
+
+{ #category : 'accessing' }
+TreeNode >> isLeaf: aBoolean [
+	isLeaf := aBoolean.
+]
+
+{ #category : 'accessing' }
 TreeNode >> name [
     ^name
 ]
@@ -61,6 +73,16 @@ TreeNode >> name [
 { #category : 'accessing' }
 TreeNode >> name: aName [
     name := aName.
+]
+
+{ #category : 'accessing' }
+TreeNode >> srcNode [
+	^srcNode
+]
+
+{ #category : 'accessing' }
+TreeNode >> srcNode: aNode [
+	srcNode := aNode
 ]
 
 { #category : 'accessing' }
