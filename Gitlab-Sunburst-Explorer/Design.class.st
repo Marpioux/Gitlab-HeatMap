@@ -9,6 +9,155 @@ Class {
 }
 
 { #category : 'as yet unclassified' }
+Design >> DynamicSunburstFor: aTree withLeafs: aLeafName [
+	| sb canvas newData color newAnimation first interpolate label interaction legend |
+	canvas := RSCanvas new.
+
+	color := NSScale category20c.
+	newData := nil.
+	newAnimation := [ :from :to |
+		canvas newAnimation
+			easing: RSEasingInterpolator bounceOut;
+			from: from;
+			to: to;
+			duration: 50 milliSeconds;
+			yourself ].
+
+	interpolate := [ :oldShape :newShape :target |
+		(oldShape notNil and: [newShape notNil]) ifTrue: [
+			(newAnimation value: oldShape alphaAngle value: newShape alphaAngle) onStepDo: [ :t |
+				target alphaAngle: t.
+				canvas signalUpdate ].
+			(newAnimation value: oldShape betaAngle value: newShape betaAngle) onStepDo: [ :t |
+				target betaAngle: t ].
+			(newAnimation value: oldShape innerRadius value: newShape innerRadius) onStepDo: [ :t |
+				target innerRadius: t ].
+			(newAnimation value: oldShape externalRadius value: newShape externalRadius) onStepDo: [ :t |
+				target externalRadius: t.
+				canvas zoomToFit ];
+			yourself
+		]
+	].
+
+	sb := RSSunburstBuilder new.
+	sb
+		container: canvas;
+		sliceColor: [ :shape | shape model color ].
+	sb sliceShape border: (RSBorder new color: Color black).
+	canvas addShape: (label := RSLabel new
+		isFixed: true;
+		yourself).
+
+	newData := [ :class |
+		| lastShapes newShapes oshape |
+		lastShapes := canvas shapes copy.
+		sb explore: class using: aLeafName.
+		sb build.
+		sb shapes @ RSPopup.
+
+		interaction := RSSunburstFadeInteraction new builder: sb.
+		sb shapes
+			when: RSMouseEnter do: [ :evt |
+				| path |
+				path := (interaction pathFor: evt shape) reverse.
+				path := path last model fullPath.
+				label
+					text: path;
+					signalUpdate.
+				label position: label extent / 2 ]
+			for: self;
+			when: RSMouseLeave do: [ :evt | label text: '' ]
+			for: self.
+		sb shapes @ interaction.
+
+		label text: class name.
+		newShapes := sb shapes.
+		first := newShapes first.
+		first
+			when: RSMouseClick
+			do: [ :evt |
+				| cls |
+				cls := evt shape model srcNode.
+				cls = Object ifFalse: [ newData value: cls ] ]
+			for: self.
+		(newShapes allButFirst reject: #isSLeaf)
+			when: RSMouseClick
+			do: [ :evt | newData value: evt shape model ]
+			for: self.
+
+		newShapes size < lastShapes size
+			ifTrue: [
+				newShapes do: [ :new |
+					| old |
+					old := lastShapes shapeFromModel: new model.
+					old ifNotNil: [
+						old remove.
+						interpolate value: old value: new value: new
+					] ].
+
+				oshape := (lastShapes shapeFromModel: class) ifNil: [ RSPieSlice new ] ifNotNil: [ lastShapes shapeFromModel: class ].
+				lastShapes do: [ :old |
+					| new |
+					new := RSPieSlice new.
+					(oshape notNil and: [oshape betaAngle < old betaAngle]) ifTrue: [
+						new
+							alphaAngle: 360;
+							betaAngle: 360 ].
+					old depth = 1 ifTrue: [
+						new
+							alphaAngle: 0;
+							betaAngle: 360 ].
+					(interpolate value: old value: new value: old)
+						when: RSAnimationLoopEvent
+						do: [ old remove ]
+						for: self ] ]
+			ifFalse: [
+				oshape := lastShapes isEmpty
+					ifTrue: [ RSPieSlice new ]
+					ifFalse: [
+						(newShapes shapeFromModel: lastShapes first model)
+							ifNil: [ RSPieSlice new ]
+							ifNotNil: [ :shape | shape ] ].
+
+				newShapes do: [ :new |
+					| old |
+					old := lastShapes shapeFromModel: new model.
+					old ifNil: [
+						old := RSPieSlice new.
+						(oshape notNil and: [oshape betaAngle < new betaAngle]) ifTrue: [
+							old
+								alphaAngle: 360;
+								betaAngle: 360 ]
+						ifFalse: [
+							old
+								alphaAngle: 0;
+								betaAngle: 0 ] ].
+					new depth = 1 ifTrue: [
+						old
+							alphaAngle: 0;
+							betaAngle: 360 ].
+					old remove.
+					interpolate value: old value: new value: new ] ].
+	].
+
+	canvas
+		when: RSExtentChangedEvent
+		do: [
+			label position:
+				canvas extent x / 2 @ (canvas extent y - label height) ]
+		for: self.
+		
+"	legend := (self legend ) asShape.
+	sb canvas add: legend.
+	legend translateTo: sb canvas extent x + legend extent x @ (0 - sb canvas extent y)."
+
+	newData value: aTree.
+
+	^ canvas
+
+]
+
+{ #category : 'creation' }
 Design >> SunburstFor: aProject withLeafs: leafsName [ 
 	| sb interaction label legend |
 	
@@ -150,10 +299,11 @@ Design >> SunburstFor: aProject withLeafs: leafsName maxDepth: maxDepth withBase
 	sunBuilder shapes when: RSMouseClick do: [:evt |
 		| clickedNode  retrieveNode newTree "window" newSB |
 		clickedNode := evt shape model.
+		"clickedNode isLeaf ifFalse: [ "  
 		retrieveNode := self retrieveNode: clickedNode name fromTree: baseProject.
 		newTree := self limitedDepthCopy: retrieveNode maxDepth: maxDepth.
 		newSB := self SunburstFor: newTree withLeafs: #subFoldersOrFile maxDepth: maxDepth withBase: baseProject.
-		self updateCanvasWith: newSB. 
+		self updateCanvasWith: newSB.
 		] for: self.
 
 	legend := (self legend ) asShape.
@@ -227,7 +377,7 @@ Design >> sunBuilder [
 	^sunBuilder
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'creation' }
 Design >> sunBuilder: aBuilder [
 	sunBuilder := aBuilder
 ]

@@ -8,7 +8,8 @@ Class {
 		'fullPath',
 		'color',
 		'changedBy',
-		'isLeaf'
+		'isLeaf',
+		'srcNode'
 	],
 	#category : 'Gitlab-Sunburst-Explorer',
 	#package : 'Gitlab-Sunburst-Explorer'
@@ -72,6 +73,16 @@ TreeNode >> name [
 { #category : 'accessing' }
 TreeNode >> name: aName [
     name := aName.
+]
+
+{ #category : 'accessing' }
+TreeNode >> srcNode [
+	^srcNode
+]
+
+{ #category : 'accessing' }
+TreeNode >> srcNode: aNode [
+	srcNode := aNode
 ]
 
 { #category : 'accessing' }

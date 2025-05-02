@@ -31,7 +31,7 @@ Utilities >> branch: anObject [
 Utilities >> buildTreeFrom: paths [
 	| root pathSet |
 	root := TreeNode new.
-	root name: 'root'; fullPath: '/'; changed: nil; color: nil; changedBy: nil; isLeaf: false.
+	root name: 'root'; fullPath: '/'; changed: nil; color: nil; changedBy: nil; isLeaf: false; srcNode: root.
 
 	pathSet := paths asSet.
 
@@ -78,6 +78,7 @@ Utilities >> buildTreeFrom: paths [
 							color: nodeColor;
 							changedBy: author;
 							isLeaf: currentIsFile;
+							srcNode: current;
 							yourself
 							].
 
@@ -96,71 +97,79 @@ Utilities >> buildTreeFrom: paths [
 
 { #category : 'instance creation' }
 Utilities >> buildTreeFrom: paths maxDepth: maxDepth [
+
 	| root pathSet |
+	self
+		deprecated: 'Use buildTreeFrom: instead of current one'
+		on: '2 May 2025'
+		in:
+		'Pharo-12.0.0+SNAPSHOT.build.1570.sha.3dafb8a476dfe88afa5aa6bf7b148beb9c11003f (64 Bit)'.
 	root := TreeNode new.
-	root name: 'root'; fullPath: '/'; changed: nil; color: nil; changedBy: nil; isLeaf: false.
+	root
+		name: 'root';
+		fullPath: '/';
+		changed: nil;
+		color: nil;
+		changedBy: nil;
+		isLeaf: false.
 
 	pathSet := paths asSet.
 
-	paths do: [:path |
+	paths do: [ :path |
 		| parts current currentPath |
 		parts := path substrings: '/'.
 		current := root.
 		currentPath := ''.
 
-		1 to: (parts size min: maxDepth) do: [:index |
+		1 to: (parts size min: maxDepth) do: [ :index |
 			| part next currentIsFile changedValue nodeColor author |
 			part := parts at: index.
 			currentPath := currentPath isEmpty
-				ifTrue: [part]
-				ifFalse: [currentPath , '/' , part].
+				               ifTrue: [ part ]
+				               ifFalse: [ currentPath , '/' , part ].
 
 			currentIsFile := (pathSet includes: currentPath) and: [
-				(pathSet anySatisfy: [:p | p ~= currentPath and: [p beginsWith: currentPath , '/']]) not
-			].
+				                 (pathSet anySatisfy: [ :p |
+					                  p ~= currentPath and: [
+						                  p beginsWith: currentPath , '/' ] ]) not ].
 
 			changedValue := currentIsFile
-				ifTrue: [self getDateLastBlame: currentPath]
-				ifFalse: [nil].
+				                ifTrue: [ self getDateLastBlame: currentPath ]
+				                ifFalse: [ nil ].
 
 			author := currentIsFile
-				ifTrue: [self getAuthorLastBlame: currentPath]
-				ifFalse: [nil].
+				          ifTrue: [ self getAuthorLastBlame: currentPath ]
+				          ifFalse: [ nil ].
 
 			nodeColor := changedValue
-				ifNil: [Color r: 0.8 g: 1.0 b: 0.8]
-				ifNotNil: [
-					currentIsFile
-						ifTrue: [(self checkDate: changedValue)
-							ifTrue: [Color r: 1.0 g: 0.2 b: 0.2]
-							ifFalse: [Color r: 0.8 g: 0.8 b: 0.8]]
-						ifFalse: [nil]
-				].
+				             ifNil: [ Color r: 0.8 g: 1.0 b: 0.8 ]
+				             ifNotNil: [
+					             currentIsFile
+						             ifTrue: [
+							             (self checkDate: changedValue)
+								             ifTrue: [ Color r: 1.0 g: 0.2 b: 0.2 ]
+								             ifFalse: [ Color r: 0.8 g: 0.8 b: 0.8 ] ]
+						             ifFalse: [ nil ] ].
 
 			next := current subFoldersOrFile
-				detect: [:child | child name = part]
-				ifNone: [
-					TreeNode new
-						name: part;
-						fullPath: currentPath;
-						changed: changedValue;
-						color: nodeColor;
-						changedBy: author;
-						isLeaf: currentIsFile;
-						yourself
-				].
+				        detect: [ :child | child name = part ]
+				        ifNone: [
+					        TreeNode new
+						        name: part;
+						        fullPath: currentPath;
+						        changed: changedValue;
+						        color: nodeColor;
+						        changedBy: author;
+						        isLeaf: currentIsFile;
+						        yourself ].
 
 			(current subFoldersOrFile includes: next) ifFalse: [
-				current subFoldersOrFile add: next
-			].
+				current subFoldersOrFile add: next ].
 
-			current := next.
-		].
-	].
+			current := next ] ].
 
 	root := self computeAverageColor: root.
 	^ root
-
 ]
 
 { #category : 'services' }
