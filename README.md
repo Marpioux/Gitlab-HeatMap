@@ -91,7 +91,7 @@ sbCanva canvas
 
 **Example:**
 
-![demoGitHeatMapSimple](https://github.com/user-attachments/assets/6fc76828-507f-4d74-835a-d586b40f6435)
+![demoHeatMapSimpleAnonyme](https://github.com/user-attachments/assets/cbb94c86-2e1c-411b-ae47-034ddaa4deb9)
 
 ### 2. Insider Heatmap
 This version is designed for easier navigation in large projects by limiting the visible depth.
@@ -112,7 +112,7 @@ sbCanva canvas
 
 **Example:**
 
-![demoGitHeatMapInsider](https://github.com/user-attachments/assets/423289c3-8079-42fa-9dfe-23888366cdde)
+![demoHeatMapInsiderAnonyme](https://github.com/user-attachments/assets/4b54f204-3917-4cdf-94c3-142896a6402e)
 
 ### 3. Dynamic Heatmap
 This is the most scalable version and is suitable for large codebases.
@@ -134,7 +134,7 @@ sbCanva canvas.
 
 **Example:**
 
-![demoGitHeatMapDynamic](https://github.com/user-attachments/assets/251690e4-6f76-4ecd-b4e2-17c95860f668)
+![demoHeatMapDynamicAnonyme](https://github.com/user-attachments/assets/aa9b48ba-a583-46b2-8966-4b08071fcb6e)
 
 ## Contribution
 
