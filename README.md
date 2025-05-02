@@ -43,4 +43,19 @@ nodesTree := nodes buildTreeFrom: files .
 sb := Design new.
 sbCanva := sb SunburstFor: nodesTree withLeafs: #subFoldersOrFile.
 sbCanva canvas
+
+"OR"
+
+sb := Design new.
+sbCanva := sb SunburstFor: nodesTree withLeafs: #subFoldersOrFile maxDepth: 2.
+sbCanva canvas
+
+"OR"
+
+sb:= Design new.
+sbCanva := sb DynamicSunburstFor: nodesTree withLeafs: #subFoldersOrFile.
+sbCanva canvas.
+
+
+"See explanation for the severals sunbursts in README.md"
 ```
