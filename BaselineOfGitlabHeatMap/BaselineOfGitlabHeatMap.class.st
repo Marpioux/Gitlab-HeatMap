@@ -20,7 +20,7 @@ BaselineOfGitlabHeatMap >> defineDependencies: spec [
 		
 	spec
     baseline: 'GitLabHealth'
-    with: [ spec repository: 'github://moosetechnology/GitProjectHealth:v1.3.2/src' ]
+    with: [ spec repository: 'github://moosetechnology/GitProjectHealth:v1.x.x/src' ]
 ]
 
 { #category : 'baselines' }
